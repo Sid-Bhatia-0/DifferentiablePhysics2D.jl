@@ -1,0 +1,13 @@
+name = "DifferentiablePhysics2D"
+uuid = "ce91eb96-bf77-418d-8c3e-36ca926e37e5"
+authors = ["Sid-Bhatia-0 <sidb60200@gmail.com> and contributors"]
+version = "0.0.1"
+
+[compat]
+julia = "1.5"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
