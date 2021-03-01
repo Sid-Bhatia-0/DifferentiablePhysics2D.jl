@@ -1,6 +1,5 @@
-using DifferentiablePhysics2D
-using Test
+import DifferentiablePhysics2D
+import Test
 
-@testset "DifferentiablePhysics2D.jl" begin
-    # Write your tests here.
+Test.@testset "DifferentiablePhysics2D.jl" begin
 end
