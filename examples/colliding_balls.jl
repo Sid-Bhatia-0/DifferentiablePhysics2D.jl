@@ -8,7 +8,8 @@ import PhysicsPrimitives2D
 import PhysicsPrimitives2D: PP2D
 
 T = Float32
-step_size = convert(T, 1 / 360)
+step_size = convert(T, 1 / 5040)
+n = 5040
 e = one(T)
 
 r1 = convert(T, 1)
@@ -68,35 +69,48 @@ function get_v2(v1_mag, v1_theta, d, r1, r2, m1, m2, e)
     return SA.SVector(v2_mag * cos(v2_theta), -v2_mag * sin(v2_theta))
 end
 
-t = 0
-@show t
-@show p1
-@show v1
-@show p2
-@show v2
-@show PP2D.is_colliding(c1, c2, p2 .- p1)
-println("********************************************************************")
-
-for i in 1:360
-    global p1 = move(p1, v1, step_size)
-    global p2 = move(p2, v2, step_size)
-    global t += 1
-    @show t
-    @show p1
-    @show v1
-    @show p2
-    @show v2
-    @show PP2D.is_colliding(c1, c2, p2 .- p1)
-    if PP2D.is_colliding(c1, c2, p2 .- p1)
-        @info "collision occured!"
-        penetration, normal = get_separation_data(c1, c2, p2 .- p1)
-        j1, j2 = PP2D.get_normal_impulse(inv(m1), inv(m2), v1, v2, e, normal)
-        global v1 = v1 .+ inv(m1) * j1 * normal
-        global v2 = v2 .+ inv(m2) * j2 * normal
-        @show j1
-        @show j2
-        @show penetration
-        @show normal
+function simulate(c1, c2, p1, p2, v1, v2, m1, m2, e, n)
+    t = 0
+    for i in 1:n
+        p1 = move(p1, v1, step_size)
+        p2 = move(p2, v2, step_size)
+        collision = PP2D.is_colliding(c1, c2, p2 .- p1)
+        t += 1
+        if collision
+            @info "collision occured!"
+            penetration, normal = get_separation_data(c1, c2, p2 .- p1)
+            j1, j2 = PP2D.get_normal_impulse(inv(m1), inv(m2), v1, v2, e, normal)
+            v1 = v1 .+ inv(m1) * j1 * normal
+            v2 = v2 .+ inv(m2) * j2 * normal
+            @show t
+            @show p1
+            @show p2
+            @show v1
+            @show v2
+            @show j1
+            @show j2
+            @show penetration
+            @show normal
+            println("********************************************************************")
+        end
     end
-    println("********************************************************************")
+    return p1, p2, v1, v2
 end
+
+p1_final, p2_final, v1_final, v2_final = simulate(c1, c2, p1, p2, v1, v2, m1, m2, e, n)
+
+@show p1_final
+@show p2_final
+@show v1_final
+@show v2_final
+v2_final_mag = LA.norm(v2_final)
+v2_final_theta = atan(v2_final[2], v2_final[1])
+@show v2_final_mag
+@show v2_final_theta
+
+v2_analytical_theta = get_v2_theta(v1_theta, d, r1, r2)
+v2_analytical_mag = get_v2_mag(v1_mag, v1_theta, v2_analytical_theta, m1, m2, e)
+v2_analytical = SA.SVector(v2_analytical_mag * cos(v2_analytical_theta), -v2_analytical_mag * sin(v2_analytical_theta))
+@show v2_analytical_mag
+@show v2_analytical_theta
+@show v2_analytical
