@@ -8,7 +8,7 @@ import PhysicsPrimitives2D
 import PhysicsPrimitives2D: PP2D
 
 T = Float32
-step_size = convert(T, 1 / 60)
+step_size = convert(T, 1 / 360)
 e = one(T)
 
 r1 = convert(T, 1)
@@ -26,10 +26,7 @@ m2 = convert(T, 2)
 p2 = SA.SVector(d, zero(T))
 v2 = zero(SA.SVector{2, T})
 
-function move(position, velocity, step_size)
-    position_new = position .+ (step_size * velocity)
-    return position_new, velocity
-end
+move(position, velocity, step_size) = position .+ (step_size * velocity)
 
 function PP2D.is_colliding(a::PP2D.StdCircle, b::PP2D.StdCircle, pos_ba)
     r_a = PP2D.get_radius(a)
@@ -62,6 +59,15 @@ function PP2D.get_normal_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao, in
     return j_ao_normal_o, j_bo_normal_o
 end
 
+get_v2_theta(v1_theta, d, r1, r2) = asin(d * sin(v1_theta) / (r1 + r2)) - v1_theta
+get_v2_mag(v1_mag, v1_theta, v2_theta, m1, m2, e) = (((one(e) + e) * m1 * v1_mag * cos(v1_theta + v2_theta)) / (m1 + m2))
+
+function get_v2(v1_mag, v1_theta, d, r1, r2, m1, m2, e)
+    v2_theta = get_v2_theta(v1_theta, d, r1, r2)
+    v2_mag = get_v2_mag(v1_mag, v1_theta, v2_theta, m1, m2, e)
+    return SA.SVector(v2_mag * cos(v2_theta), -v2_mag * sin(v2_theta))
+end
+
 t = 0
 @show t
 @show p1
@@ -71,9 +77,9 @@ t = 0
 @show PP2D.is_colliding(c1, c2, p2 .- p1)
 println("********************************************************************")
 
-for i in 1:120
-    global p1, v1 = move(p1, v1, step_size)
-    global p2, v2 = move(p2, v2, step_size)
+for i in 1:360
+    global p1 = move(p1, v1, step_size)
+    global p2 = move(p2, v2, step_size)
     global t += 1
     @show t
     @show p1
