@@ -37,6 +37,20 @@ function PP2D.is_colliding(a::PP2D.StdCircle, b::PP2D.StdCircle, pos_ba)
     return LA.dot(pos_ba, pos_ba) < r * r
 end
 
+function get_separation_data(a::PP2D.StdCircle{T}, b::PP2D.StdCircle{T}, pos_ba) where {T}
+    r_a = PP2D.get_radius(a)
+    r_b = PP2D.get_radius(b)
+    d = LA.norm(pos_ba)
+    penetration = r_a + r_b - d
+    normal = pos_ba / d
+    if all(isfinite.(normal))
+        return penetration, normal
+    else
+        normal = SA.SVector(FD.Dual(one(T), (zero(T), zero(T))), FD.Dual(one(T), (zero(T), zero(T))))
+        return penetration, normal
+    end
+end
+
 t = 0
 @show t
 @show p1
@@ -56,5 +70,11 @@ for i in 1:4
     @show p2
     @show v2
     @show PP2D.is_colliding(c1, c2, p2 .- p1)
+    if PP2D.is_colliding(c1, c2, p2 .- p1)
+        @info "collision occured!"
+        penetration, normal = get_separation_data(c1, c2, p2 .- p1)
+        @show penetration
+        @show normal
+    end
     println("********************************************************************")
 end
