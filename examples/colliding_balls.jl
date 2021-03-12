@@ -30,11 +30,11 @@ function move(position, velocity, step_size)
     return position_new, velocity
 end
 
-function PP2D.is_colliding(c1::PP2D.StdCircle, c2::PP2D.StdCircle, pos)
-    r1 = PP2D.get_radius(c1)
-    r2 = PP2D.get_radius(c2)
-    r = r1 + r2
-    return LA.dot(pos, pos) < r * r
+function PP2D.is_colliding(a::PP2D.StdCircle, b::PP2D.StdCircle, pos_ba)
+    r_a = PP2D.get_radius(a)
+    r_b = PP2D.get_radius(b)
+    r = r_a + r_b
+    return LA.dot(pos_ba, pos_ba) < r * r
 end
 
 t = 0
