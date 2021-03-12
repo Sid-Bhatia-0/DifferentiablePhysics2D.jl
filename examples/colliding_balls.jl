@@ -8,7 +8,8 @@ import PhysicsPrimitives2D
 import PhysicsPrimitives2D: PP2D
 
 T = Float32
-step_size = convert(T, 1)
+step_size = convert(T, 1 / 60)
+e = one(T)
 
 r1 = convert(T, 1)
 m1 = convert(T, 1)
@@ -51,6 +52,16 @@ function get_separation_data(a::PP2D.StdCircle{T}, b::PP2D.StdCircle{T}, pos_ba)
     end
 end
 
+function PP2D.get_normal_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao, initial_velocity_bo, e, normal_o)
+    initial_velocity_ba = initial_velocity_bo .- initial_velocity_ao
+    initial_velocity_ba_normal_o = LA.dot(initial_velocity_ba, normal_o)
+    temp = -e * initial_velocity_ba_normal_o
+    final_velocity_ba_normal_o = max(zero(temp), temp)
+    j_ao_normal_o = (initial_velocity_ba_normal_o - final_velocity_ba_normal_o) / (inv_mass_a + inv_mass_b)
+    j_bo_normal_o = -j_ao_normal_o
+    return j_ao_normal_o, j_bo_normal_o
+end
+
 t = 0
 @show t
 @show p1
@@ -60,7 +71,7 @@ t = 0
 @show PP2D.is_colliding(c1, c2, p2 .- p1)
 println("********************************************************************")
 
-for i in 1:4
+for i in 1:120
     global p1, v1 = move(p1, v1, step_size)
     global p2, v2 = move(p2, v2, step_size)
     global t += 1
@@ -73,6 +84,11 @@ for i in 1:4
     if PP2D.is_colliding(c1, c2, p2 .- p1)
         @info "collision occured!"
         penetration, normal = get_separation_data(c1, c2, p2 .- p1)
+        j1, j2 = PP2D.get_normal_impulse(inv(m1), inv(m2), v1, v2, e, normal)
+        global v1 = v1 .+ inv(m1) * j1 * normal
+        global v2 = v2 .+ inv(m2) * j2 * normal
+        @show j1
+        @show j2
         @show penetration
         @show normal
     end
