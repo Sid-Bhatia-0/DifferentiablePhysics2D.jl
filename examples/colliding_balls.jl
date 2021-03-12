@@ -4,12 +4,15 @@ import LinearAlgebra
 const LA = LinearAlgebra
 import ForwardDiff
 const FD = ForwardDiff
+import PhysicsPrimitives2D
+import PhysicsPrimitives2D: PP2D
 
 T = Float32
 step_size = convert(T, 1)
 
 r1 = convert(T, 1)
 m1 = convert(T, 1)
+c1 = PP2D.StdCircle(r1)
 p1 = zero(SA.SVector{2, T})
 v1_mag = FD.Dual(convert(T, 2), (one(T), zero(T)))
 v1_theta = FD.Dual(convert(T, pi / 6), (zero(T), one(T)))
@@ -17,6 +20,7 @@ v1 = SA.SVector(v1_mag * cos(v1_theta), v1_mag * sin(v1_theta))
 
 d = convert(T, 4)
 r2 = convert(T, 2)
+c2 = PP2D.StdCircle(r2)
 m2 = convert(T, 2)
 p2 = SA.SVector(d, zero(T))
 v2 = zero(SA.SVector{2, T})
@@ -26,12 +30,20 @@ function move(position, velocity, step_size)
     return position_new, velocity
 end
 
+function PP2D.is_colliding(c1::PP2D.StdCircle, c2::PP2D.StdCircle, pos)
+    r1 = PP2D.get_radius(c1)
+    r2 = PP2D.get_radius(c2)
+    r = r1 + r2
+    return LA.dot(pos, pos) < r * r
+end
+
 t = 0
 @show t
 @show p1
 @show v1
 @show p2
 @show v2
+@show PP2D.is_colliding(c1, c2, p2 .- p1)
 println("********************************************************************")
 
 for i in 1:4
@@ -43,5 +55,6 @@ for i in 1:4
     @show v1
     @show p2
     @show v2
+    @show PP2D.is_colliding(c1, c2, p2 .- p1)
     println("********************************************************************")
 end
